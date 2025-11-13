@@ -46,21 +46,21 @@ class Schueler:
         print(f"KURSWAHL VON: {self.name}")
         print(f"{'='*50}")
         
-        print("\n📚 LEISTUNGSKURSE (2 Fächer):")
+        print("\n LEISTUNGSKURSE (2 Fächer):")
         if self.leistungskurse:
             for lk in self.leistungskurse:
                 print(f"  • {lk.name} - {lk.wochenstunden}h/Woche")
         else:
             print("  Noch keine Leistungskurse gewählt")
         
-        print("\n📖 GRUNDKURSE:")
+        print("\n GRUNDKURSE:")
         if self.grundkurse:
             for gk in self.grundkurse:
                 print(f"  • {gk.name} - {gk.wochenstunden}h/Woche")
         else:
             print("  Noch keine Grundkurse gewählt")
         
-        print("\n⚽ SPORT (PRAXIS):")
+        print("\n SPORT (PRAXIS):")
         if self.sport:
             print(f"  • {self.sport.name} - {self.sport.wochenstunden}h/Woche")
         else:
@@ -75,7 +75,7 @@ class Schueler:
         if self.sport:
             gesamt_stunden += self.sport.wochenstunden
         
-        print(f"\n⏰ GESAMT WOCHENSTUNDEN: {gesamt_stunden}")
+        print(f"\nGESAMT WOCHENSTUNDEN: {gesamt_stunden}")
         print(f"{'='*50}\n")
 
 
