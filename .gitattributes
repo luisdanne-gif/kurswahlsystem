@@ -1,2 +1,4 @@
-# Auto detect text files and perform LF normalization
-* text=auto
+print("Hallo! Das Kurswahlsystem startet...")
+name = input("Wie heißt du? ")
+print(f"Willkommen {name}!")
+print("Hier sind die verfügbaren Kurse:")
