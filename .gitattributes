@@ -2,3 +2,151 @@ print("Hallo! Das Kurswahlsystem startet...")
 name = input("Wie heißt du? ")
 print(f"Willkommen {name}!")
 print("Hier sind die verfügbaren Kurse:")
+
+class Kurs:
+    def __init__(self, name, typ, wochenstunden, klausuren_pro_semester, gewichtung):
+        self.name = name
+        self.typ = typ  # "LK", "GK", "Sport"
+        self.wochenstunden = wochenstunden
+        self.klausuren_pro_semester = klausuren_pro_semester
+        self.gewichtung = gewichtung  # "doppelt" oder "einfach"
+    
+    def info_anzeigen(self):
+        print(f"\n--- {self.name} ---")
+        print(f"Typ: {self.typ}")
+        print(f"Wochenstunden: {self.wochenstunden}")
+        print(f"Klausuren pro Semester: {self.klausuren_pro_semester}")
+        print(f"Gewichtung fürs Abitur: {self.gewichtung}")
+
+
+class Schueler:
+    def __init__(self, name):
+        self.name = name
+        self.leistungskurse = []
+        self.grundkurse = []
+        self.sport = None
+    
+    def leistungskurs_waehlen(self, kurs):
+        if len(self.leistungskurse) < 2:
+            self.leistungskurse.append(kurs)
+            print(f"✓ {kurs.name} als Leistungskurs hinzugefügt")
+        else:
+            print("✗ Du hast bereits 2 Leistungskurse gewählt!")
+    
+    def grundkurs_waehlen(self, kurs):
+        self.grundkurse.append(kurs)
+        print(f"✓ {kurs.name} als Grundkurs hinzugefügt")
+    
+    def sport_waehlen(self, sport_kurs):
+        self.sport = sport_kurs
+        print(f"✓ {sport_kurs.name} als Sport (Praxis) hinzugefügt")
+    
+    def kurswahl_anzeigen(self):
+        print(f"\n{'='*50}")
+        print(f"KURSWAHL VON: {self.name}")
+        print(f"{'='*50}")
+        
+        print("\n📚 LEISTUNGSKURSE (2 Fächer):")
+        if self.leistungskurse:
+            for lk in self.leistungskurse:
+                print(f"  • {lk.name} - {lk.wochenstunden}h/Woche")
+        else:
+            print("  Noch keine Leistungskurse gewählt")
+        
+        print("\n📖 GRUNDKURSE:")
+        if self.grundkurse:
+            for gk in self.grundkurse:
+                print(f"  • {gk.name} - {gk.wochenstunden}h/Woche")
+        else:
+            print("  Noch keine Grundkurse gewählt")
+        
+        print("\n⚽ SPORT (PRAXIS):")
+        if self.sport:
+            print(f"  • {self.sport.name} - {self.sport.wochenstunden}h/Woche")
+        else:
+            print("  Noch kein Sport gewählt")
+        
+        # Gesamtstunden berechnen
+        gesamt_stunden = 0
+        for lk in self.leistungskurse:
+            gesamt_stunden += lk.wochenstunden
+        for gk in self.grundkurse:
+            gesamt_stunden += gk.wochenstunden
+        if self.sport:
+            gesamt_stunden += self.sport.wochenstunden
+        
+        print(f"\n⏰ GESAMT WOCHENSTUNDEN: {gesamt_stunden}")
+        print(f"{'='*50}\n")
+
+
+# Beispiel-Kurse erstellen
+def beispiel_kurse_erstellen():
+    # Leistungskurse (5 Wochenstunden)
+    mathe_lk = Kurs("Mathematik", "LK", 5, "2 (1 im 4. Sem)", "doppelt")
+    deutsch_lk = Kurs("Deutsch", "LK", 5, "2 (1 im 4. Sem)", "doppelt")
+    englisch_lk = Kurs("Englisch", "LK", 5, "2 (1 im 4. Sem)", "doppelt")
+    
+    # Grundkurse (3 Wochenstunden)
+    bio_gk = Kurs("Biologie", "GK", 3, "1 pro Semester", "einfach")
+    chemie_gk = Kurs("Chemie", "GK", 3, "1 pro Semester", "einfach")
+    geschichte_gk = Kurs("Geschichte", "GK", 3, "1 pro Semester", "einfach")
+    
+    # Neu begonnene Fremdsprache (4 Wochenstunden)
+    spanisch_gk = Kurs("Spanisch (neu)", "GK", 4, "1 pro Semester", "einfach")
+    
+    # Sport (2 Wochenstunden, keine Klausuren)
+    sport = Kurs("Sport (Praxis)", "Sport", 2, "keine", "einfach (wenn eingebracht)")
+    
+    return {
+        "leistungskurse": [mathe_lk, deutsch_lk, englisch_lk],
+        "grundkurse": [bio_gk, chemie_gk, geschichte_gk, spanisch_gk],
+        "sport": sport
+    }
+
+
+# Hauptprogramm
+def main():
+    print("=" * 50)
+    print("OBERSTUFEN KURSWAHLSYSTEM")
+    print("=" * 50)
+    
+    # Schüler erstellen
+    name = input("\nWie heißt du? ")
+    schueler = Schueler(name)
+    
+    # Kurse laden
+    kurse = beispiel_kurse_erstellen()
+    
+    # Leistungskurse wählen
+    print("\n--- LEISTUNGSKURSE WÄHLEN (2 Fächer) ---")
+    print("Verfügbare Leistungskurse:")
+    for i, lk in enumerate(kurse["leistungskurse"], 1):
+        print(f"{i}. {lk.name}")
+    
+    for i in range(2):
+        wahl = int(input(f"\nWähle Leistungskurs {i+1} (Nummer): ")) - 1
+        schueler.leistungskurs_waehlen(kurse["leistungskurse"][wahl])
+    
+    # Grundkurse wählen
+    print("\n--- GRUNDKURSE WÄHLEN ---")
+    print("Verfügbare Grundkurse:")
+    for i, gk in enumerate(kurse["grundkurse"], 1):
+        print(f"{i}. {gk.name}")
+    
+    anzahl_gk = int(input("\nWie viele Grundkurse möchtest du wählen? "))
+    for i in range(anzahl_gk):
+        wahl = int(input(f"Wähle Grundkurs {i+1} (Nummer): ")) - 1
+        schueler.grundkurs_waehlen(kurse["grundkurse"][wahl])
+    
+    # Sport wählen
+    sport_wahl = input("\nMöchtest du Sport (Praxis) wählen? (j/n): ")
+    if sport_wahl.lower() == 'j':
+        schueler.sport_waehlen(kurse["sport"])
+    
+    # Kurswahl anzeigen
+    schueler.kurswahl_anzeigen()
+
+
+# Programm starten
+if __name__ == "__main__":
+    main()
