@@ -53,7 +53,7 @@ class Schueler:
         else:
             print("  Noch keine Leistungskurse gewählt")
         
-        print("\n GRUNDKURSE:")
+        print("\n📖 GRUNDKURSE:")
         if self.grundkurse:
             for gk in self.grundkurse:
                 print(f"  • {gk.name} - {gk.wochenstunden}h/Woche")
@@ -75,7 +75,7 @@ class Schueler:
         if self.sport:
             gesamt_stunden += self.sport.wochenstunden
         
-        print(f"\nGESAMT WOCHENSTUNDEN: {gesamt_stunden}")
+        print(f"\n GESAMT WOCHENSTUNDEN: {gesamt_stunden}")
         print(f"{'='*50}\n")
 
 
@@ -106,6 +106,34 @@ def beispiel_kurse_erstellen():
 
 # Hauptprogramm
 def main():
+    # Hilfsfunktionen für robuste Eingaben
+    def read_int_in_range(prompt, min_value, max_value):
+        while True:
+            try:
+                val = int(input(prompt))
+            except ValueError:
+                print("Bitte eine Zahl eingeben.")
+                continue
+            if val < min_value or val > max_value:
+                print(f"Bitte eine Zahl zwischen {min_value} und {max_value} eingeben.")
+                continue
+            return val
+
+    def read_nonnegative_int(prompt, max_value=None):
+        while True:
+            try:
+                val = int(input(prompt))
+            except ValueError:
+                print("Bitte eine gültige Zahl eingeben.")
+                continue
+            if val < 0:
+                print("Bitte eine nicht-negative Zahl eingeben.")
+                continue
+            if max_value is not None and val > max_value:
+                print(f"Maximal {max_value} möglich.")
+                continue
+            return val
+
     print("=" * 50)
     print("OBERSTUFEN KURSWAHLSYSTEM")
     print("=" * 50)
@@ -124,8 +152,14 @@ def main():
         print(f"{i}. {lk.name}")
     
     for i in range(2):
-        wahl = int(input(f"\nWähle Leistungskurs {i+1} (Nummer): ")) - 1
-        schueler.leistungskurs_waehlen(kurse["leistungskurse"][wahl])
+        while True:
+            wahl = read_int_in_range(f"\nWähle Leistungskurs {i+1} (Nummer): ", 1, len(kurse["leistungskurse"])) - 1
+            kurs_auswahl = kurse["leistungskurse"][wahl]
+            if kurs_auswahl in schueler.leistungskurse:
+                print("Diesen Kurs hast du bereits als Leistungskurs gewählt. Bitte wähle einen anderen.")
+                continue
+            schueler.leistungskurs_waehlen(kurs_auswahl)
+            break
     
     # Grundkurse wählen
     print("\n--- GRUNDKURSE WÄHLEN ---")
@@ -133,10 +167,17 @@ def main():
     for i, gk in enumerate(kurse["grundkurse"], 1):
         print(f"{i}. {gk.name}")
     
-    anzahl_gk = int(input("\nWie viele Grundkurse möchtest du wählen? "))
+    max_gk = len(kurse["grundkurse"]) 
+    anzahl_gk = read_nonnegative_int("\nWie viele Grundkurse möchtest du wählen? ", max_value=max_gk)
     for i in range(anzahl_gk):
-        wahl = int(input(f"Wähle Grundkurs {i+1} (Nummer): ")) - 1
-        schueler.grundkurs_waehlen(kurse["grundkurse"][wahl])
+        while True:
+            wahl = read_int_in_range(f"Wähle Grundkurs {i+1} (Nummer): ", 1, max_gk) - 1
+            kurs_auswahl = kurse["grundkurse"][wahl]
+            if kurs_auswahl in schueler.grundkurse:
+                print("Diesen Grundkurs hast du bereits gewählt. Bitte wähle einen anderen.")
+                continue
+            schueler.grundkurs_waehlen(kurs_auswahl)
+            break
     
     # Sport wählen
     sport_wahl = input("\nMöchtest du Sport (Praxis) wählen? (j/n): ")
