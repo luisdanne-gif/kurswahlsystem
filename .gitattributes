@@ -1,15 +1,11 @@
-print("Hallo! Das Kurswahlsystem startet...")
-name = input("Wie heißt du? ")
-print(f"Willkommen {name}!")
-print("Hier sind die verfügbaren Kurse:")
-
 class Kurs:
-    def __init__(self, name, typ, wochenstunden, klausuren_pro_semester, gewichtung):
+    def __init__(self, name, typ, wochenstunden, klausuren_pro_semester, gewichtung, kategorie):
         self.name = name
         self.typ = typ  # "LK", "GK", "Sport"
         self.wochenstunden = wochenstunden
         self.klausuren_pro_semester = klausuren_pro_semester
         self.gewichtung = gewichtung  # "doppelt" oder "einfach"
+        self.kategorie = kategorie  # z.B. "Fremdsprache", "Naturwissenschaft", "Gesellschaftswissenschaft"
     
     def info_anzeigen(self):
         print(f"\n--- {self.name} ---")
@@ -17,6 +13,7 @@ class Kurs:
         print(f"Wochenstunden: {self.wochenstunden}")
         print(f"Klausuren pro Semester: {self.klausuren_pro_semester}")
         print(f"Gewichtung fürs Abitur: {self.gewichtung}")
+        print(f"Kategorie: {self.kategorie}")
 
 
 class Schueler:
@@ -24,7 +21,12 @@ class Schueler:
         self.name = name
         self.leistungskurse = []
         self.grundkurse = []
-        self.sport = None
+        self.sport_praxis = None
+        self.sport_theorie = None
+        self.pruefungsfach_3 = None
+        self.pruefungsfach_4 = None
+        self.fuenfte_pk = None
+        self.hatte_zweite_fs_vor_11 = None  # True/False
     
     def leistungskurs_waehlen(self, kurs):
         if len(self.leistungskurse) < 2:
@@ -37,16 +39,19 @@ class Schueler:
         self.grundkurse.append(kurs)
         print(f"✓ {kurs.name} als Grundkurs hinzugefügt")
     
-    def sport_waehlen(self, sport_kurs):
-        self.sport = sport_kurs
-        print(f"✓ {sport_kurs.name} als Sport (Praxis) hinzugefügt")
+    def sport_waehlen(self, sport_praxis, sport_theorie=None):
+        self.sport_praxis = sport_praxis
+        self.sport_theorie = sport_theorie
+        print(f"✓ {sport_praxis.name} hinzugefügt")
+        if sport_theorie:
+            print(f"✓ {sport_theorie.name} hinzugefügt")
     
     def kurswahl_anzeigen(self):
-        print(f"\n{'='*50}")
+        print(f"\n{'='*60}")
         print(f"KURSWAHL VON: {self.name}")
-        print(f"{'='*50}")
+        print(f"{'='*60}")
         
-        print("\n LEISTUNGSKURSE (2 Fächer):")
+        print("\n📚 LEISTUNGSKURSE (2 Fächer):")
         if self.leistungskurse:
             for lk in self.leistungskurse:
                 print(f"  • {lk.name} - {lk.wochenstunden}h/Woche")
@@ -60,53 +65,190 @@ class Schueler:
         else:
             print("  Noch keine Grundkurse gewählt")
         
-        print("\n SPORT (PRAXIS):")
-        if self.sport:
-            print(f"  • {self.sport.name} - {self.sport.wochenstunden}h/Woche")
-        else:
-            print("  Noch kein Sport gewählt")
+        print("\n⚽ SPORT:")
+        if self.sport_praxis:
+            print(f"  • {self.sport_praxis.name} - {self.sport_praxis.wochenstunden}h/Woche")
+        if self.sport_theorie:
+            print(f"  • {self.sport_theorie.name} - {self.sport_theorie.wochenstunden}h/Woche")
+        if not self.sport_praxis and not self.sport_theorie:
+            print("  Kein Sport gewählt")
+        
+        print("\n🎯 PRÜFUNGSFÄCHER:")
+        print(f"  1. PF: {self.leistungskurse[0].name if len(self.leistungskurse) > 0 else 'N/A'}")
+        print(f"  2. PF: {self.leistungskurse[1].name if len(self.leistungskurse) > 1 else 'N/A'}")
+        print(f"  3. PF: {self.pruefungsfach_3.name if self.pruefungsfach_3 else 'Noch nicht gewählt'}")
+        print(f"  4. PF: {self.pruefungsfach_4.name if self.pruefungsfach_4 else 'Noch nicht gewählt'}")
+        print(f"  5. PK: {self.fuenfte_pk.name if self.fuenfte_pk else 'Noch nicht gewählt'}")
         
         # Gesamtstunden berechnen
-        gesamt_stunden = 0
-        for lk in self.leistungskurse:
-            gesamt_stunden += lk.wochenstunden
-        for gk in self.grundkurse:
-            gesamt_stunden += gk.wochenstunden
-        if self.sport:
-            gesamt_stunden += self.sport.wochenstunden
+        gesamt_stunden = sum(lk.wochenstunden for lk in self.leistungskurse)
+        gesamt_stunden += sum(gk.wochenstunden for gk in self.grundkurse)
+        if self.sport_praxis:
+            gesamt_stunden += self.sport_praxis.wochenstunden
+        if self.sport_theorie:
+            gesamt_stunden += self.sport_theorie.wochenstunden
         
-        print(f"\n GESAMT WOCHENSTUNDEN: {gesamt_stunden}")
-        print(f"{'='*50}\n")
+        print(f"\n⏱️  GESAMT WOCHENSTUNDEN: {gesamt_stunden}")
+        print(f"{'='*60}\n")
+    
+    def validiere_kurswahl(self):
+        """Überprüft ob alle Bedingungen erfüllt sind"""
+        fehler = []
+        warnungen = []
+        
+        # Gesamtzahl der Kurse prüfen (8 LK-Semester + 24 GK-Semester = 32 Semester)
+        lk_semester = len(self.leistungskurse) * 4  # Jeder LK geht 4 Semester
+        gk_semester = len(self.grundkurse) * 4  # Jeder GK geht 4 Semester
+        gesamt_semester = lk_semester + gk_semester
+        
+        if lk_semester != 8:
+            fehler.append(f"❌ Du brauchst 8 LK-Semester (2 LKs × 4 Sem), hast aber {lk_semester}")
+        if gk_semester < 24:
+            fehler.append(f"❌ Du brauchst mindestens 24 GK-Semester, hast aber nur {gk_semester}")
+        
+        # Alle Kurse sammeln
+        alle_kurse = self.leistungskurse + self.grundkurse
+        
+        # 4–6 Kurse in Fremdsprachen
+        fs_kurse = [k for k in alle_kurse if k.kategorie == "Fremdsprache"]
+        if len(fs_kurse) < 4 or len(fs_kurse) > 6:
+            fehler.append(f"❌ Du brauchst 4-6 Fremdsprachenkurse, hast aber {len(fs_kurse)}")
+        
+        # 2. Fremdsprache ab 11. Klasse (wenn nicht vorher)
+        if not self.hatte_zweite_fs_vor_11:
+            neue_fs = [k for k in fs_kurse if "(neu)" in k.name]
+            if len(neue_fs) < 1:
+                fehler.append("❌ Du brauchst eine neu beginnende 2. Fremdsprache ab Klasse 11")
+        
+        # 4x Deutsch und 4x Mathematik
+        deutsch_kurse = [k for k in alle_kurse if "Deutsch" in k.name]
+        mathe_kurse = [k for k in alle_kurse if "Mathematik" in k.name]
+        
+        if len(deutsch_kurse) < 1:
+            fehler.append("❌ Du brauchst Deutsch (4 Semester)")
+        if len(mathe_kurse) < 1:
+            fehler.append("❌ Du brauchst Mathematik (4 Semester)")
+        
+        # Naturwissenschaften
+        nawi_kurse = [k for k in alle_kurse if k.kategorie == "Naturwissenschaft"]
+        physik = [k for k in nawi_kurse if "Physik" in k.name]
+        chemie = [k for k in nawi_kurse if "Chemie" in k.name]
+        biologie = [k for k in nawi_kurse if "Biologie" in k.name]
+        
+        # Prüfe: Physik/Chemie durchgängig ODER 4x Bio + mind. 2x Physik/Chemie
+        physik_chemie_durchgaengig = (len(physik) >= 1 or len(chemie) >= 1)
+        bio_mit_ergaenzung = len(biologie) >= 1 and (len(physik) >= 2 or len(chemie) >= 2)
+        
+        if not physik_chemie_durchgaengig and not bio_mit_ergaenzung:
+            fehler.append("❌ Naturwissenschaften: Entweder Physik/Chemie durchgängig (4 Sem) ODER Biologie (4 Sem) + mind. 2 Sem Physik/Chemie")
+        
+        # Kunst/Musik/DS (außer bei neuer Fremdsprache)
+        kunst_musik_ds = [k for k in alle_kurse if k.kategorie == "Kunst/Musik/DS"]
+        neue_fs_ab_11 = [k for k in fs_kurse if "(neu)" in k.name]
+        
+        if not neue_fs_ab_11 and len(kunst_musik_ds) < 1:
+            fehler.append("❌ Du brauchst 2 Semester Kunst, Musik oder Darstellendes Spiel")
+        
+        # Gesellschaftswissenschaften
+        gesell_kurse = [k for k in alle_kurse if k.kategorie == "Gesellschaftswissenschaft"]
+        geschichte = [k for k in gesell_kurse if "Geschichte" in k.name]
+        politik = [k for k in gesell_kurse if "Politik" in k.name]
+        geografie = [k for k in gesell_kurse if "Geografie" in k.name]
+        philosophie = [k for k in gesell_kurse if "Philosophie" in k.name]
+        
+        # 4x Geschichte + 2x Politik ODER 4x Politik + 2x Geschichte (oder mit Geo/Philo)
+        gesell_ok = False
+        if len(geschichte) >= 1 and len(politik) >= 1:
+            gesell_ok = True
+        elif len(geschichte) >= 1 and (len(geografie) >= 1 or len(philosophie) >= 1):
+            gesell_ok = True
+        elif len(politik) >= 1 and (len(geografie) >= 1 or len(philosophie) >= 1):
+            gesell_ok = True
+        
+        if not gesell_ok:
+            fehler.append("❌ Gesellschaftswissenschaften: z.B. 4 Sem Geschichte + 2 Sem Politik (oder Kombinationen mit Geo/Philosophie)")
+        
+        # Prüfungsfächer
+        if not self.pruefungsfach_3:
+            warnungen.append("⚠️  3. Prüfungsfach noch nicht gewählt")
+        if not self.pruefungsfach_4:
+            warnungen.append("⚠️  4. Prüfungsfach noch nicht gewählt")
+        if not self.fuenfte_pk:
+            warnungen.append("⚠️  5. Prüfungskomponente noch nicht gewählt")
+        
+        # Sport als Prüfungsfach → Sporttheorie
+        pruefungsfaecher = [self.pruefungsfach_3, self.pruefungsfach_4]
+        if any(pf and "Sport" in pf.name for pf in pruefungsfaecher):
+            if not self.sport_theorie:
+                fehler.append("❌ Wenn Sport Prüfungsfach ist, brauchst du auch Sporttheorie")
+        
+        # Ergebnisse anzeigen
+        print("\n" + "="*60)
+        print("VALIDIERUNG DER KURSWAHL")
+        print("="*60)
+        
+        if not fehler and not warnungen:
+            print("\n✅ Alle Bedingungen erfüllt! Deine Kurswahl ist gültig.")
+        else:
+            if fehler:
+                print("\n❌ FEHLER (müssen behoben werden):")
+                for f in fehler:
+                    print(f"  {f}")
+            
+            if warnungen:
+                print("\n⚠️  WARNUNGEN:")
+                for w in warnungen:
+                    print(f"  {w}")
+        
+        print("="*60 + "\n")
+        return len(fehler) == 0
 
 
-# Beispiel-Kurse erstellen
 def beispiel_kurse_erstellen():
-    # Leistungskurse (5 Wochenstunden)
-    mathe_lk = Kurs("Mathematik", "LK", 5, "2 (1 im 4. Sem)", "doppelt")
-    deutsch_lk = Kurs("Deutsch", "LK", 5, "2 (1 im 4. Sem)", "doppelt")
-    englisch_lk = Kurs("Englisch", "LK", 5, "2 (1 im 4. Sem)", "doppelt")
-    
-    # Grundkurse (3 Wochenstunden)
-    bio_gk = Kurs("Biologie", "GK", 3, "1 pro Semester", "einfach")
-    chemie_gk = Kurs("Chemie", "GK", 3, "1 pro Semester", "einfach")
-    geschichte_gk = Kurs("Geschichte", "GK", 3, "1 pro Semester", "einfach")
-    
-    # Neu begonnene Fremdsprache (4 Wochenstunden)
-    spanisch_gk = Kurs("Spanisch (neu)", "GK", 4, "1 pro Semester", "einfach")
-    
-    # Sport (2 Wochenstunden, keine Klausuren)
-    sport = Kurs("Sport (Praxis)", "Sport", 2, "keine", "einfach (wenn eingebracht)")
-    
-    return {
-        "leistungskurse": [mathe_lk, deutsch_lk, englisch_lk],
-        "grundkurse": [bio_gk, chemie_gk, geschichte_gk, spanisch_gk],
-        "sport": sport
+    kurse = {
+        "leistungskurse": [
+            Kurs("Mathematik", "LK", 5, "2 (1 im 4. Sem)", "doppelt", "Mathematik"),
+            Kurs("Deutsch", "LK", 5, "2 (1 im 4. Sem)", "doppelt", "Deutsch"),
+            Kurs("Englisch", "LK", 5, "2 (1 im 4. Sem)", "doppelt", "Fremdsprache"),
+            Kurs("Biologie", "LK", 5, "2 (1 im 4. Sem)", "doppelt", "Naturwissenschaft"),
+            Kurs("Geschichte", "LK", 5, "2 (1 im 4. Sem)", "doppelt", "Gesellschaftswissenschaft"),
+        ],
+        "grundkurse": [
+            # Fremdsprachen
+            Kurs("Englisch", "GK", 3, "1 pro Semester", "einfach", "Fremdsprache"),
+            Kurs("Französisch", "GK", 3, "1 pro Semester", "einfach", "Fremdsprache"),
+            Kurs("Spanisch (neu)", "GK", 4, "1 pro Semester", "einfach", "Fremdsprache"),
+            Kurs("Latein", "GK", 3, "1 pro Semester", "einfach", "Fremdsprache"),
+            
+            # Naturwissenschaften
+            Kurs("Biologie", "GK", 3, "1 pro Semester", "einfach", "Naturwissenschaft"),
+            Kurs("Chemie", "GK", 3, "1 pro Semester", "einfach", "Naturwissenschaft"),
+            Kurs("Physik", "GK", 3, "1 pro Semester", "einfach", "Naturwissenschaft"),
+            
+            # Gesellschaftswissenschaften
+            Kurs("Geschichte", "GK", 3, "1 pro Semester", "einfach", "Gesellschaftswissenschaft"),
+            Kurs("Politikwissenschaft", "GK", 3, "1 pro Semester", "einfach", "Gesellschaftswissenschaft"),
+            Kurs("Geografie", "GK", 3, "1 pro Semester", "einfach", "Gesellschaftswissenschaft"),
+            Kurs("Philosophie", "GK", 3, "1 pro Semester", "einfach", "Gesellschaftswissenschaft"),
+            
+            # Kunst/Musik/DS
+            Kurs("Kunst", "GK", 2, "1 pro Semester", "einfach", "Kunst/Musik/DS"),
+            Kurs("Musik", "GK", 2, "1 pro Semester", "einfach", "Kunst/Musik/DS"),
+            Kurs("Darstellendes Spiel", "GK", 2, "1 pro Semester", "einfach", "Kunst/Musik/DS"),
+            
+            # Pflichtfächer
+            Kurs("Mathematik", "GK", 3, "1 pro Semester", "einfach", "Mathematik"),
+            Kurs("Deutsch", "GK", 3, "1 pro Semester", "einfach", "Deutsch"),
+        ],
+        "sport": {
+            "praxis": Kurs("Sport (Praxis)", "Sport", 2, "keine", "einfach", "Sport"),
+            "theorie": Kurs("Sporttheorie", "GK", 2, "1 pro Semester", "einfach", "Sport")
+        }
     }
+    return kurse
 
 
-# Hauptprogramm
 def main():
-    # Hilfsfunktionen für robuste Eingaben
     def read_int_in_range(prompt, min_value, max_value):
         while True:
             try:
@@ -119,59 +261,61 @@ def main():
                 continue
             return val
 
-    def read_nonnegative_int(prompt, max_value=None):
-        while True:
-            try:
-                val = int(input(prompt))
-            except ValueError:
-                print("Bitte eine gültige Zahl eingeben.")
-                continue
-            if val < 0:
-                print("Bitte eine nicht-negative Zahl eingeben.")
-                continue
-            if max_value is not None and val > max_value:
-                print(f"Maximal {max_value} möglich.")
-                continue
-            return val
-
-    print("=" * 50)
-    print("OBERSTUFEN KURSWAHLSYSTEM")
-    print("=" * 50)
+    print("="*60)
+    print("BERLINER OBERSTUFEN KURSWAHLSYSTEM")
+    print("="*60)
     
-    # Schüler erstellen
     name = input("\nWie heißt du? ")
     schueler = Schueler(name)
     
-    # Kurse laden
+    # Frage nach 2. Fremdsprache
+    fs_antwort = input("\nHattest du bereits vor Klasse 11 eine 2. Fremdsprache? (j/n): ")
+    schueler.hatte_zweite_fs_vor_11 = fs_antwort.lower() == 'j'
+    
     kurse = beispiel_kurse_erstellen()
     
     # Leistungskurse wählen
-    print("\n--- LEISTUNGSKURSE WÄHLEN (2 Fächer) ---")
+    print("\n" + "="*60)
+    print("SCHRITT 1: LEISTUNGSKURSE WÄHLEN (2 Fächer)")
+    print("="*60)
     print("Verfügbare Leistungskurse:")
     for i, lk in enumerate(kurse["leistungskurse"], 1):
-        print(f"{i}. {lk.name}")
+        print(f"{i}. {lk.name} ({lk.kategorie})")
     
     for i in range(2):
         while True:
             wahl = read_int_in_range(f"\nWähle Leistungskurs {i+1} (Nummer): ", 1, len(kurse["leistungskurse"])) - 1
             kurs_auswahl = kurse["leistungskurse"][wahl]
             if kurs_auswahl in schueler.leistungskurse:
-                print("Diesen Kurs hast du bereits als Leistungskurs gewählt. Bitte wähle einen anderen.")
+                print("Diesen Kurs hast du bereits gewählt. Bitte wähle einen anderen.")
                 continue
             schueler.leistungskurs_waehlen(kurs_auswahl)
             break
     
     # Grundkurse wählen
-    print("\n--- GRUNDKURSE WÄHLEN ---")
+    print("\n" + "="*60)
+    print("SCHRITT 2: GRUNDKURSE WÄHLEN (mindestens 6 für 24 Semester)")
+    print("="*60)
     print("Verfügbare Grundkurse:")
     for i, gk in enumerate(kurse["grundkurse"], 1):
-        print(f"{i}. {gk.name}")
+        print(f"{i}. {gk.name} ({gk.kategorie})")
     
-    max_gk = len(kurse["grundkurse"]) 
-    anzahl_gk = read_nonnegative_int("\nWie viele Grundkurse möchtest du wählen? ", max_value=max_gk)
+    while True:
+        try:
+            anzahl_gk = int(input("\nWie viele Grundkurse möchtest du wählen? (empfohlen: 6-8): "))
+            if anzahl_gk < 1:
+                print("Du brauchst mindestens 1 Grundkurs.")
+                continue
+            if anzahl_gk > len(kurse["grundkurse"]):
+                print(f"Maximal {len(kurse['grundkurse'])} verfügbar.")
+                continue
+            break
+        except ValueError:
+            print("Bitte eine Zahl eingeben.")
+    
     for i in range(anzahl_gk):
         while True:
-            wahl = read_int_in_range(f"Wähle Grundkurs {i+1} (Nummer): ", 1, max_gk) - 1
+            wahl = read_int_in_range(f"Wähle Grundkurs {i+1} (Nummer): ", 1, len(kurse["grundkurse"])) - 1
             kurs_auswahl = kurse["grundkurse"][wahl]
             if kurs_auswahl in schueler.grundkurse:
                 print("Diesen Grundkurs hast du bereits gewählt. Bitte wähle einen anderen.")
@@ -180,14 +324,52 @@ def main():
             break
     
     # Sport wählen
-    sport_wahl = input("\nMöchtest du Sport (Praxis) wählen? (j/n): ")
+    print("\n" + "="*60)
+    print("SCHRITT 3: SPORT")
+    print("="*60)
+    sport_wahl = input("Möchtest du Sport (Praxis) wählen? (j/n): ")
+    sport_theorie = None
     if sport_wahl.lower() == 'j':
-        schueler.sport_waehlen(kurse["sport"])
+        theorie_wahl = input("Möchtest du auch Sporttheorie wählen? (j/n): ")
+        if theorie_wahl.lower() == 'j':
+            sport_theorie = kurse["sport"]["theorie"]
+            schueler.grundkurse.append(sport_theorie)
+        schueler.sport_waehlen(kurse["sport"]["praxis"], sport_theorie)
+    
+    # Prüfungsfächer wählen
+    print("\n" + "="*60)
+    print("SCHRITT 4: PRÜFUNGSFÄCHER FESTLEGEN")
+    print("="*60)
+    print("1. und 2. Prüfungsfach: Deine Leistungskurse")
+    print(f"  → {schueler.leistungskurse[0].name}")
+    print(f"  → {schueler.leistungskurse[1].name}")
+    
+    alle_gk_namen = [f"{i+1}. {gk.name}" for i, gk in enumerate(schueler.grundkurse)]
+    
+    print("\n3. Prüfungsfach (aus deinen Grundkursen):")
+    for name in alle_gk_namen:
+        print(f"  {name}")
+    wahl_3 = read_int_in_range("Wähle 3. Prüfungsfach: ", 1, len(schueler.grundkurse)) - 1
+    schueler.pruefungsfach_3 = schueler.grundkurse[wahl_3]
+    
+    print("\n4. Prüfungsfach (aus deinen Grundkursen):")
+    for name in alle_gk_namen:
+        print(f"  {name}")
+    wahl_4 = read_int_in_range("Wähle 4. Prüfungsfach: ", 1, len(schueler.grundkurse)) - 1
+    schueler.pruefungsfach_4 = schueler.grundkurse[wahl_4]
+    
+    print("\n5. Prüfungskomponente (aus deinen Grundkursen):")
+    for name in alle_gk_namen:
+        print(f"  {name}")
+    wahl_5 = read_int_in_range("Wähle 5. PK: ", 1, len(schueler.grundkurse)) - 1
+    schueler.fuenfte_pk = schueler.grundkurse[wahl_5]
     
     # Kurswahl anzeigen
     schueler.kurswahl_anzeigen()
+    
+    # Validierung durchführen
+    schueler.validiere_kurswahl()
 
 
-# Programm starten
 if __name__ == "__main__":
     main()
