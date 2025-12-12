@@ -1,0 +1,980 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kursauswahlsystem</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #e0f2fe 0%, #c7d2fe 100%);
+            padding: 2rem;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        .header h1 {
+            font-size: 2rem;
+            color: #1e40af;
+            margin-bottom: 0.5rem;
+        }
+        
+        .phase-section {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+            overflow: hidden;
+        }
+        
+        .phase-header {
+            padding: 1rem 1.5rem;
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+        
+        .phase1-header {
+            background: #4f46e5;
+            color: white;
+        }
+        
+        .phase2-header {
+            background: #10b981;
+            color: white;
+        }
+        
+        .phase2-header.locked {
+            background: #9ca3af;
+        }
+        
+        .requirements-box {
+            background: #fef3c7;
+            border-bottom: 2px solid #fbbf24;
+            padding: 1rem 1.5rem;
+        }
+        
+        .requirements-box h4 {
+            color: #92400e;
+            margin-bottom: 0.5rem;
+            font-size: 1rem;
+        }
+        
+        .requirement-item {
+            font-size: 0.875rem;
+            padding: 0.25rem 0;
+        }
+        
+        .requirement-met {
+            color: #10b981;
+        }
+        
+        .requirement-needed {
+            color: #dc2626;
+            font-weight: 600;
+        }
+        
+        .phase-content {
+            padding: 1.5rem;
+        }
+        
+        .course-grid {
+            display: grid;
+            gap: 1.5rem;
+        }
+        
+        .phase1-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+        
+        .phase2-grid {
+            grid-template-columns: repeat(3, 1fr);
+        }
+        
+        .course-box {
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 1rem;
+        }
+        
+        .course-box h3 {
+            color: #374151;
+            margin-bottom: 0.5rem;
+            font-size: 1rem;
+        }
+        
+        .slot-warning {
+            font-size: 0.75rem;
+            color: #6b7280;
+            margin-bottom: 0.75rem;
+        }
+        
+        .course-box select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 0.875rem;
+            transition: all 0.2s;
+            background: white;
+        }
+        
+        .course-box select:hover:not(:disabled) {
+            border-color: #4f46e5;
+        }
+        
+        .course-box select:disabled {
+            background: #f3f4f6;
+            cursor: not-allowed;
+            color: #9ca3af;
+        }
+        
+        .course-box select.selected {
+            background: #ecfdf5;
+            border-color: #10b981;
+            color: #065f46;
+            font-weight: 600;
+        }
+        
+        .clear-btn {
+            width: 100%;
+            margin-top: 0.75rem;
+            padding: 0.5rem;
+            background: #ef4444;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.875rem;
+            font-weight: 600;
+            transition: background 0.2s;
+        }
+        
+        .clear-btn:hover {
+            background: #dc2626;
+        }
+        
+        .selected-info {
+            margin-top: 0.75rem;
+            padding: 0.75rem;
+            background: #ecfdf5;
+            border: 1px solid #10b981;
+            border-radius: 6px;
+        }
+        
+        .selected-name {
+            font-weight: 600;
+            color: #065f46;
+            margin-bottom: 0.25rem;
+        }
+        
+        .selected-level {
+            font-size: 0.75rem;
+            color: #10b981;
+        }
+        
+        .summary {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            padding: 1.5rem;
+        }
+        
+        .summary h2 {
+            color: #374151;
+            margin-bottom: 1rem;
+            font-size: 1.5rem;
+        }
+        
+        .summary-empty {
+            color: #6b7280;
+            text-align: center;
+            padding: 2rem;
+        }
+        
+        .summary-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.75rem;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(90deg, #ecfdf5 0%, #dbeafe 100%);
+            border: 1px solid #10b981;
+            border-radius: 6px;
+        }
+        
+        .summary-position {
+            min-width: 100px;
+            font-weight: 700;
+            color: #10b981;
+            font-size: 0.875rem;
+        }
+        
+        .summary-name {
+            font-weight: 600;
+            color: #374151;
+            flex-grow: 1;
+        }
+        
+        .summary-badge {
+            font-size: 0.75rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+        }
+        
+        .badge-phase {
+            background: #c7d2fe;
+            color: #4338ca;
+        }
+        
+        .badge-level {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        
+        .reset-all-btn {
+            width: 100%;
+            margin-top: 1rem;
+            padding: 0.75rem;
+            background: #ef4444;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: background 0.2s;
+        }
+        
+        .reset-all-btn:hover {
+            background: #dc2626;
+        }
+        
+        .info-badge {
+            font-size: 0.75rem;
+            background: #dbeafe;
+            color: #1e40af;
+            padding: 0.5rem 0.75rem;
+            border-radius: 6px;
+            margin-top: 0.75rem;
+        }
+        
+        @media (max-width: 1024px) {
+            .phase2-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .phase1-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            body {
+                padding: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>🎓 Kursauswahlsystem</h1>
+            <p style="color: #6b7280; margin-top: 0.5rem; font-size: 0.875rem;">
+                <strong>Leistungsfächer:</strong> Wählen Sie 2 Kurse aus (Reihenfolge spielt keine Rolle). Einige Kombinationen sind eingeschränkt.<br>
+                <strong>Prüfungsfächer:</strong> Wählen Sie 3 weitere Kurse aus. Voraussetzungen und besondere Anforderungen gelten.
+            </p>
+        </div>
+
+        <!-- LEISTUNGSFÄCHER (Phase 1) -->
+        <div class="phase-section">
+            <div class="phase-header phase1-header">
+                Leistungsfächer: Wählen Sie Ihre ersten 2 Kurse
+            </div>
+            <div class="phase-content">
+                <div class="course-grid phase1-grid">
+                    <!-- Course 1 -->
+                    <div class="course-box">
+                        <h3>Leistungskurs 1</h3>
+                        <select id="course1"></select>
+                        <button class="clear-btn" id="clear-btn-0" style="display: none;">Auswahl löschen</button>
+                        <div class="selected-info" id="info-0" style="display: none;"></div>
+                    </div>
+
+                    <!-- Course 2 -->
+                    <div class="course-box">
+                        <h3>Leistungskurs 2</h3>
+                        <select id="course2"></select>
+                        <button class="clear-btn" id="clear-btn-1" style="display: none;">Auswahl löschen</button>
+                        <div class="selected-info" id="info-1" style="display: none;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PRÜFUNGSFÄCHER (Phase 2) -->
+        <div class="phase-section">
+            <div class="phase-header phase2-header locked" id="phase2-header">
+                Prüfungsfächer: Wählen Sie Ihre nächsten 3 Kurse (Leistungsfächer zuerst abschließen)
+            </div>
+            <div class="requirements-box" id="requirements-box" style="display: none;">
+                <h4 id="requirements-title">Prüfungsfächer Anforderungen</h4>
+                <div id="requirements-content"></div>
+            </div>
+            <div class="phase-content">
+                <div class="course-grid phase2-grid">
+                    <!-- Course 3 -->
+                    <div class="course-box">
+                        <h3>Schriftliche Prüfungsfach 3</h3>
+                        <p class="slot-warning">✓ Alle Kurse erlaubt</p>
+                        <select id="course3" disabled></select>
+                        <button class="clear-btn" id="clear-btn-2" style="display: none;">Auswahl löschen</button>
+                        <div class="selected-info" id="info-2" style="display: none;"></div>
+                    </div>
+
+                    <!-- Course 4 -->
+                    <div class="course-box">
+                        <h3>Mündliche Prüfungsfächer 4</h3>
+                        <p class="slot-warning">✓ Alle Kurse erlaubt</p>
+                        <select id="course4" disabled></select>
+                        <button class="clear-btn" id="clear-btn-3" style="display: none;">Auswahl löschen</button>
+                        <div class="selected-info" id="info-3" style="display: none;"></div>
+                    </div>
+
+                    <!-- Course 5 -->
+                    <div class="course-box">
+                        <h3>Referenzfach 5</h3>
+                        <p class="slot-warning">⚠️ Mathe/Deutsch/Fremdsprache hier nicht erlaubt</p>
+                        <select id="course5" disabled></select>
+                        <button class="clear-btn" id="clear-btn-4" style="display: none;">Auswahl löschen</button>
+                        <div class="selected-info" id="info-4" style="display: none;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SUMMARY -->
+        <div class="summary">
+            <h2>Ihren Kursen</h2>
+            <div id="summary-content">
+                <div class="summary-empty">Noch keine Kurse ausgewählt. Beginnen Sie mit den Leistungsfächern!</div>
+            </div>
+            <button class="reset-all-btn" id="reset-all-btn" style="display: none;">Alle Auswahlen zurücksetzen</button>
+        </div>
+    </div>
+
+    <script>
+        // Course data - English and Spanish are considered Fremdsprache
+        const courseData = {
+            'english': { name: 'English', level: 1, phase: 1, isFremdsprache: true },
+            'spanish': { name: 'Spanish', level: 1, phase: 1, isFremdsprache: true },
+            'deutsch': { name: 'Deutsch', level: 1, phase: 1 },
+            'musik': { name: 'Musik', level: 1, phase: 1 },
+            'kunst': { name: 'Kunst', level: 1, phase: 1 },
+            'mathe': { name: 'Mathe', level: 1, phase: 1 },
+            'politik': { name: 'Politik', level: 1, phase: 1 },
+            'biologie': { name: 'Biologie', level: 1, phase: 1 },
+            'chemie': { name: 'Chemie', level: 2, phase: 1 },
+            'physik': { name: 'Physik', level: 2, phase: 1 },
+            'informatik': { name: 'Informatik', level: 2, phase: 1 },
+            'philosophie': { name: 'Philosophie', level: 1, phase: 2 },
+            'geschichte': { name: 'Geschichte', level: 1, phase: 2 },
+            'erdkunde': { name: 'Erdkunde', level: 1, phase: 2 },
+            'darstellendesspiel': { name: 'DarstellendesSpiel', level: 1, phase: 2 },
+            'sport': { name: 'Sport', level: 1, phase: 2 }
+        };
+
+        // Phase 1 pairings
+        const pairingsPhase1 = {
+            'english': ['deutsch', 'spanish', 'musik', 'kunst', 'politik', 'mathe', 'biologie', 'chemie', 'physik', 'informatik'],
+            'spanish': ['deutsch', 'english', 'musik', 'kunst', 'mathe', 'biologie', 'chemie', 'physik', 'informatik'],
+            'deutsch': ['english', 'spanish', 'chemie', 'physik', 'musik', 'kunst', 'politik'],
+            'mathe': ['english', 'spanish', 'musik', 'kunst', 'politik', 'chemie', 'physik'],
+            'informatik': ['english', 'spanish', 'chemie', 'physik'],
+            'musik': ['english', 'spanish', 'mathe', 'biologie', 'deutsch'],
+            'kunst': ['english', 'spanish', 'mathe', 'biologie', 'deutsch'],
+            'politik': ['english', 'mathe', 'biologie', 'deutsch'],
+            'biologie': ['english', 'spanish', 'musik', 'kunst', 'politik', 'chemie', 'physik'],
+            'chemie': ['english', 'spanish', 'mathe', 'deutsch', 'biologie', 'informatik'],
+            'physik': ['english', 'spanish', 'mathe', 'deutsch', 'biologie', 'informatik']
+        };
+
+        let selectedCourses = ['', '', '', '', ''];
+
+        // Helper function
+        function hasAny(courses, checkList) {
+            return courses.some(c => checkList.includes(c));
+        }
+
+        // Get Phase 2 requirements based on Phase 1 selections
+        function getPhase2Requirements(course1, course2) {
+            if (!course1 || !course2) return null;
+            
+            const both = [course1, course2];
+            const req1Courses = ['politik', 'philosophie', 'geschichte', 'erdkunde'];
+            const req2Courses = ['mathe', 'biologie', 'chemie', 'physik', 'informatik'];
+            const sciences = ['biologie', 'chemie', 'physik'];
+            const arts = ['musik', 'kunst'];
+            
+            // All combination rules from your specifications
+            if (hasAny(both, ['english']) && hasAny(both, ['deutsch'])) {
+                return { req1: true, req2: true, beliebigen: 1, mathSlots: [3, 4], extraReq: null };
+            }
+            
+            if (hasAny(both, ['spanish']) && hasAny(both, ['deutsch'])) {
+                return { req1: true, req2: true, beliebigen: 1, mathSlots: [3, 4], extraReq: null };
+            }
+            
+            if (hasAny(both, ['english']) && hasAny(both, ['spanish'])) {
+                return {
+                    req1: true, req2: true, beliebigen: 0, mathSlots: [3, 4],
+                    extraReq: {
+                        type: 'conditional', condition: 'if_not_mathe_then_deutsch',
+                        courses: ['deutsch'], slots: [3, 4],
+                        message: "If you don't choose Mathe for Req2, you must choose Deutsch in slot 3 or 4"
+                    }
+                };
+            }
+            
+            if (hasAny(both, ['english']) && hasAny(both, ['politik'])) {
+                return {
+                    req1: true, req2: true, beliebigen: 0, mathSlots: [3, 4],
+                    extraReq: {
+                        type: 'conditional', condition: 'if_not_mathe_then_deutsch',
+                        courses: ['deutsch'], slots: [3, 4],
+                        message: "If you don't choose Mathe for Req2, you must choose Deutsch in slot 3 or 4"
+                    }
+                };
+            }
+            
+            if (hasAny(both, ['english']) && hasAny(both, ['mathe'])) {
+                return { req1: true, req2: false, beliebigen: 2, mathSlots: [], extraReq: null };
+            }
+            
+            if (hasAny(both, ['spanish']) && hasAny(both, ['mathe'])) {
+                return { req1: true, req2: false, beliebigen: 2, mathSlots: [], extraReq: null };
+            }
+            
+            if (hasAny(both, ['english']) && hasAny(both, sciences)) {
+                return {
+                    req1: true, req2: false, beliebigen: 1, mathSlots: [3, 4],
+                    extraReq: {
+                        type: 'choose_one', courses: ['deutsch', 'mathe'], slots: [3, 4],
+                        message: 'Must choose Deutsch OR Mathe in slot 3 or 4'
+                    }
+                };
+            }
+            
+            if (hasAny(both, ['spanish']) && hasAny(both, [...sciences, 'informatik'])) {
+                return {
+                    req1: true, req2: false, beliebigen: 1, mathSlots: [3, 4],
+                    extraReq: {
+                        type: 'choose_one', courses: ['deutsch', 'mathe'], slots: [3, 4],
+                        message: 'Must choose Deutsch OR Mathe in slot 3 or 4'
+                    }
+                };
+            }
+            
+            if (hasAny(both, ['mathe']) && hasAny(both, arts)) {
+                return {
+                    req1: true, req2: false, beliebigen: 1, mathSlots: [],
+                    extraReq: {
+                        type: 'choose_one', courses: ['deutsch', 'english', 'spanish'], slots: [3, 4],
+                        message: 'Muss Deutsch ODER Fremdsprache (English/Spanish) in Fach 3 oder 4 wählen'
+                    }
+                };
+            }
+            
+            if (hasAny(both, ['mathe']) && hasAny(both, ['politik'])) {
+                return {
+                    req1: false, req2: false, beliebigen: 2, mathSlots: [],
+                    extraReq: {
+                        type: 'choose_one', courses: ['deutsch', 'english', 'spanish'], slots: [3, 4],
+                        message: 'Muss Deutsch ODER Fremdsprache (English/Spanish) in Fach 3 oder 4 wählen'
+                    }
+                };
+            }
+            
+            if (hasAny(both, ['mathe']) && hasAny(both, ['chemie', 'physik'])) {
+                return {
+                    req1: true, req2: false, beliebigen: 1, mathSlots: [],
+                    extraReq: {
+                        type: 'choose_one', courses: ['deutsch', 'english', 'spanish'], slots: [3, 4],
+                        message: 'Muss Deutsch ODER Fremdsprache (English/Spanish) in Fach 3 oder 4 wählen'
+                    }
+                };
+            }
+            
+            if (hasAny(both, ['chemie', 'physik']) && hasAny(both, ['deutsch'])) {
+                return {
+                    req1: true, req2: false, beliebigen: 1, mathSlots: [],
+                    extraReq: {
+                        type: 'choose_one', courses: ['deutsch', 'english', 'spanish'], slots: [3, 4],
+                        message: 'Muss Deutsch ODER Fremdsprache (English/Spanish) in Fach 3 oder 4 wählen'
+                    }
+                };
+            }
+            
+            if (hasAny(both, ['biologie']) && hasAny(both, arts)) {
+                return {
+                    req1: true, req2: false, beliebigen: 0, mathSlots: [3, 4],
+                    extraReq: {
+                        type: 'choose_two_of_three', courses: ['deutsch', 'mathe', 'english', 'spanish'], slots: [3, 4],
+                        message: 'Muss 2 von 3 wählen: Deutsch, Mathe, Fremdsprache (English/Spanish) in Fach 3 und 4'
+                    }
+                };
+            }
+            
+            if (hasAny(both, ['biologie']) && hasAny(both, ['politik'])) {
+                return {
+                    req1: false, req2: false, beliebigen: 1, mathSlots: [3, 4],
+                    extraReq: {
+                        type: 'choose_two_of_three', courses: ['deutsch', 'mathe', 'english', 'spanish'], slots: [3, 4],
+                        message: 'Muss 2 von 3 wählen: Deutsch, Mathe, Fremdsprache (English/Spanish) in Fach 3 und 4'
+                    }
+                };
+            }
+            
+            if (hasAny(both, ['biologie']) && hasAny(both, ['chemie', 'physik'])) {
+                return {
+                    req1: true, req2: false, beliebigen: 0, mathSlots: [3, 4],
+                    extraReq: {
+                        type: 'choose_two_of_three', courses: ['deutsch', 'mathe', 'english', 'spanish'], slots: [3, 4],
+                        message: 'Muss 2 von 3 wählen: Deutsch, Mathe, Fremdsprache (English/Spanish) in Fach 3 und 4'
+                    }
+                };
+            }
+            
+            if (hasAny(both, ['chemie', 'physik']) && hasAny(both, ['informatik'])) {
+                return {
+                    req1: true, req2: false, beliebigen: 0, mathSlots: [3, 4],
+                    extraReq: {
+                        type: 'choose_two_of_three', courses: ['deutsch', 'mathe', 'english', 'spanish'], slots: [3, 4],
+                        message: 'Muss 2 von 3 wählen: Deutsch, Mathe, Fremdsprache (English/Spanish) in Fach 3 und 4'
+                    }
+                };
+            }
+            
+            if (hasAny(both, ['deutsch']) && hasAny(both, arts)) {
+                return {
+                    req1: true, req2: true, beliebigen: 0, mathSlots: [3, 4],
+                    extraReq: {
+                        type: 'conditional', condition: 'if_not_mathe_then_fremdsprache',
+                        courses: ['english', 'spanish'], slots: [3, 4],
+                        message: 'Muss Mathe ODER Fremdsprache (English/Spanish) in Fach 3 oder 4 wählen. Wenn Mathe gewählt, ist Anforderung 2 erfüllt'
+                    }
+                };
+            }
+            
+            if (hasAny(both, ['deutsch']) && hasAny(both, ['politik'])) {
+                return {
+                    req1: true, req2: true, beliebigen: 0, mathSlots: [3, 4],
+                    extraReq: {
+                        type: 'conditional', condition: 'if_not_mathe_then_fremdsprache',
+                        courses: ['english', 'spanish'], slots: [3, 4],
+                        message: 'Muss Mathe ODER Fremdsprache (English/Spanish) in Fach 3 oder 4 wählen. Wenn Mathe gewählt, ist Anforderung 2 erfüllt'
+                    }
+                };
+            }
+            
+            return { req1: true, req2: true, beliebigen: 1, mathSlots: [3, 4], extraReq: null };
+        }
+
+        // Check requirements status
+        function checkRequirements() {
+            const requirements = getPhase2Requirements(selectedCourses[0], selectedCourses[1]);
+            if (!requirements) return { requirementsNeeded: [], requirements: null };
+            
+            const allSelected = selectedCourses.filter(c => c);
+            const req1Courses = ['politik', 'philosophie', 'geschichte', 'erdkunde'];
+            const req2Courses = ['mathe', 'biologie', 'chemie', 'physik', 'informatik'];
+            
+            const hasReq1 = requirements.req1 ? allSelected.some(c => req1Courses.includes(c)) : true;
+            const hasReq2 = requirements.req2 ? allSelected.some(c => req2Courses.includes(c)) : true;
+            
+            let hasExtraReq = true;
+            if (requirements.extraReq) {
+                const extra = requirements.extraReq;
+                const slot3 = selectedCourses[2];
+                const slot4 = selectedCourses[3];
+                
+                if (extra.type === 'choose_one' || extra.type === 'conditional') {
+                    hasExtraReq = extra.courses.some(c => [slot3, slot4].includes(c));
+                    
+                    if (extra.condition === 'if_not_mathe_then_deutsch') {
+                        const hasMathe = allSelected.includes('mathe');
+                        hasExtraReq = hasMathe || [slot3, slot4].includes('deutsch');
+                    } else if (extra.condition === 'if_not_mathe_then_fremdsprache') {
+                        const hasMathe = [slot3, slot4].includes('mathe');
+                        // Check if English or Spanish is selected (they count as Fremdsprache)
+                        const hasFremdsprache = [slot3, slot4].some(c => c === 'english' || c === 'spanish');
+                        hasExtraReq = hasMathe || hasFremdsprache;
+                    }
+                } else if (extra.type === 'choose_two_of_three') {
+                    // Count how many from the extra courses list are selected
+                    // English and Spanish both count as one Fremdsprache option
+                    const slot3Match = extra.courses.includes(slot3);
+                    const slot4Match = extra.courses.includes(slot4);
+                    const bothFremdsprache = (slot3 === 'english' || slot3 === 'spanish') && 
+                                           (slot4 === 'english' || slot4 === 'spanish');
+                    
+                    // If both slots have English/Spanish, count as only 1 Fremdsprache + 1 other
+                    let count = 0;
+                    if (slot3Match) count++;
+                    if (slot4Match && !bothFremdsprache) count++;
+                    
+                    hasExtraReq = count >= 2;
+                }
+            }
+            
+            const requirementsNeeded = [];
+            if (!hasReq1) requirementsNeeded.push('req1');
+            if (!hasReq2) requirementsNeeded.push('req2');
+            if (!hasExtraReq) requirementsNeeded.push('extra');
+            
+            return {
+                needsReq1: !hasReq1,
+                needsReq2: !hasReq2,
+                needsExtraReq: !hasExtraReq,
+                requirementsNeeded,
+                requirements
+            };
+        }
+
+        // Get available courses for Phase 2 slot
+        function getAvailablePhase2Courses(slotIndex) {
+            const allSelected = selectedCourses.filter(c => c);
+            const requirements = getPhase2Requirements(selectedCourses[0], selectedCourses[1]);
+            if (!requirements) return [];
+            
+            const reqCheck = checkRequirements();
+            const emptySlots = selectedCourses.slice(2).filter(c => !c).length;
+            const requirementsCount = reqCheck.requirementsNeeded.length;
+            
+            let available = Object.keys(courseData).filter(id => !allSelected.includes(id));
+            
+            const slot = slotIndex + 3;
+            if (slot === 5) {
+                // In slot 5, filter out Mathe, Deutsch, and Fremdsprache (English/Spanish)
+                available = available.filter(c => !['mathe', 'deutsch', 'english', 'spanish'].includes(c));
+            }
+            
+            if (requirementsCount > 0 && emptySlots === requirementsCount) {
+                const required = [];
+                if (reqCheck.needsReq1) required.push(...['politik', 'philosophie', 'geschichte', 'erdkunde']);
+                if (reqCheck.needsReq2) {
+                    required.push(...['mathe', 'biologie', 'chemie', 'physik', 'informatik']);
+                    if (slot === 5) required.splice(required.indexOf('mathe'), 1);
+                }
+                if (reqCheck.needsExtraReq && requirements.extraReq && requirements.extraReq.slots.includes(slot)) {
+                    required.push(...requirements.extraReq.courses);
+                }
+                available = available.filter(c => required.includes(c));
+            }
+            
+            return available;
+        }
+
+        // Initialize dropdowns
+        function initDropdowns() {
+            for (let i = 0; i < 2; i++) {
+                const select = document.getElementById(`course${i + 1}`);
+                select.innerHTML = '<option value="">-- Kurs wählen --</option>';
+                
+                const phase1Courses = Object.keys(courseData).filter(id => courseData[id].phase === 1);
+                phase1Courses.forEach(id => {
+                    const option = document.createElement('option');
+                    option.value = id;
+                    option.textContent = courseData[id].name;
+                    select.appendChild(option);
+                });
+                
+                select.addEventListener('change', () => handlePhase1Change(i));
+                document.getElementById(`clear-btn-${i}`).addEventListener('click', () => clearCourse(i));
+            }
+            
+            for (let i = 2; i < 5; i++) {
+                const select = document.getElementById(`course${i + 1}`);
+                select.addEventListener('change', () => handlePhase2Change(i - 2));
+                document.getElementById(`clear-btn-${i}`).addEventListener('click', () => clearCourse(i));
+            }
+            
+            document.getElementById('reset-all-btn').addEventListener('click', resetAll);
+        }
+
+        // Update Phase 1 dropdowns
+        function updatePhase1Dropdowns() {
+            for (let i = 0; i < 2; i++) {
+                const select = document.getElementById(`course${i + 1}`);
+                const otherCourse = selectedCourses[i === 0 ? 1 : 0];
+                
+                const phase1Courses = Object.keys(courseData).filter(id => courseData[id].phase === 1);
+                const available = otherCourse ? pairingsPhase1[otherCourse].filter(id => courseData[id].phase === 1) : phase1Courses;
+                
+                select.innerHTML = '<option value="">-- Select Course --</option>';
+                
+                phase1Courses.forEach(id => {
+                    const option = document.createElement('option');
+                    option.value = id;
+                    option.textContent = courseData[id].name;
+                    
+                    if (!available.includes(id)) {
+                        option.disabled = true;
+                        option.textContent += ' - Nicht kompatibel';
+                    }
+                    
+                    select.appendChild(option);
+                });
+                
+                select.value = selectedCourses[i];
+                
+                if (selectedCourses[i]) {
+                    select.classList.add('selected');
+                    document.getElementById(`clear-btn-${i}`).style.display = 'block';
+                    const course = courseData[selectedCourses[i]];
+                    document.getElementById(`info-${i}`).innerHTML = `
+                        <div class="selected-name">${course.name}</div>
+                    `;
+                    document.getElementById(`info-${i}`).style.display = 'block';
+                } else {
+                    select.classList.remove('selected');
+                    document.getElementById(`clear-btn-${i}`).style.display = 'none';
+                    document.getElementById(`info-${i}`).style.display = 'none';
+                }
+            }
+        }
+
+        // Handle Phase 1 change
+        function handlePhase1Change(index) {
+            const select = document.getElementById(`course${index + 1}`);
+            selectedCourses[index] = select.value;
+            
+            // Clear Phase 2
+            selectedCourses[2] = '';
+            selectedCourses[3] = '';
+            selectedCourses[4] = '';
+            
+            updatePhase1Dropdowns();
+            updatePhase2();
+            updateSummary();
+        }
+
+        // Update Phase 2
+        function updatePhase2() {
+            const isUnlocked = selectedCourses[0] && selectedCourses[1];
+            const header = document.getElementById('phase2-header');
+            
+            if (isUnlocked) {
+                header.textContent = 'Prüfungsfächer: Wählen Sie Ihre nächsten 3 Kurse';
+                header.classList.remove('locked');
+                updateRequirements();
+                
+                for (let i = 2; i < 5; i++) {
+                    const select = document.getElementById(`course${i + 1}`);
+                    select.disabled = false;
+                    updatePhase2Dropdown(i);
+                }
+            } else {
+                header.textContent = 'Prüfungsfächer: Wählen Sie Ihre nächsten 3 Kurse (Leistungsfächer zuerst abschließen)';
+                header.classList.add('locked');
+                document.getElementById('requirements-box').style.display = 'none';
+                
+                for (let i = 2; i < 5; i++) {
+                    const select = document.getElementById(`course${i + 1}`);
+                    select.disabled = true;
+                    select.innerHTML = '<option value="">Leistungsfächer zuerst abschließen</option>';
+                    select.classList.remove('selected');
+                    document.getElementById(`clear-btn-${i}`).style.display = 'none';
+                    document.getElementById(`info-${i}`).style.display = 'none';
+                }
+            }
+        }
+
+        // Update Phase 2 dropdown for specific slot
+        function updatePhase2Dropdown(index) {
+            const select = document.getElementById(`course${index + 1}`);
+            const slotIndex = index - 2;
+            const available = getAvailablePhase2Courses(slotIndex);
+            const allSelected = selectedCourses.filter(c => c);
+            
+            select.innerHTML = '<option value="">-- Kurs wählen --</option>';
+            
+            Object.keys(courseData).forEach(id => {
+                const option = document.createElement('option');
+                option.value = id;
+                option.textContent = courseData[id].name;
+                
+                if (allSelected.includes(id)) {
+                    option.disabled = true;
+                    option.textContent += ' - Bereits ausgewählt';
+                } else if (!available.includes(id)) {
+                    option.disabled = true;
+                    option.textContent += ' - Nicht verfügbar';
+                }
+                
+                select.appendChild(option);
+            });
+            
+            select.value = selectedCourses[index];
+            
+            if (selectedCourses[index]) {
+                select.classList.add('selected');
+                document.getElementById(`clear-btn-${index}`).style.display = 'block';
+                const course = courseData[selectedCourses[index]];
+                document.getElementById(`info-${index}`).innerHTML = `
+                    <div class="selected-name">${course.name}</div>
+                `;
+                document.getElementById(`info-${index}`).style.display = 'block';
+            } else {
+                select.classList.remove('selected');
+                document.getElementById(`clear-btn-${index}`).style.display = 'none';
+                document.getElementById(`info-${index}`).style.display = 'none';
+            }
+        }
+
+        // Handle Phase 2 change
+        function handlePhase2Change(slotIndex) {
+            const index = slotIndex + 2;
+            const select = document.getElementById(`course${index + 1}`);
+            selectedCourses[index] = select.value;
+            
+            updatePhase2();
+            updateSummary();
+        }
+
+        // Update requirements display
+        function updateRequirements() {
+            const requirements = getPhase2Requirements(selectedCourses[0], selectedCourses[1]);
+            if (!requirements) return;
+            
+            document.getElementById('requirements-box').style.display = 'block';
+            
+            const reqCheck = checkRequirements();
+            const emptySlots = selectedCourses.slice(2).filter(c => !c).length;
+            const requirementsCount = reqCheck.requirementsNeeded.length;
+            
+            document.getElementById('requirements-title').textContent = 
+                `Prüfungsfächer Anforderungen: ${requirementsCount} Anforderung(en) | ${emptySlots} Wahl(en) übrig | ${requirements.beliebigen} Beliebigen`;
+            
+            let html = '';
+            const allSelected = selectedCourses.filter(c => c);
+            
+            if (requirements.req1) {
+                const hasReq1 = allSelected.some(c => ['politik', 'philosophie', 'geschichte', 'erdkunde'].includes(c));
+                html += `<div class="requirement-item ${hasReq1 ? 'requirement-met' : 'requirement-needed'}">
+                    ${hasReq1 ? '✅' : '❌'} Anforderung 1: Muss EINES wählen von Politik, Philosophie, Geschichte oder Erdkunde
+                </div>`;
+            }
+            
+            if (requirements.req2) {
+                const hasReq2 = allSelected.some(c => ['mathe', 'biologie', 'chemie', 'physik', 'informatik'].includes(c));
+                html += `<div class="requirement-item ${hasReq2 ? 'requirement-met' : 'requirement-needed'}">
+                    ${hasReq2 ? '✅' : '❌'} Anforderung 2: Muss EINES wählen von Mathe, Biologie, Chemie, Physik oder Informatik
+                    ${requirements.mathSlots.length > 0 ? ' (Mathe nur in Fach 3 oder 4)' : ''}
+                </div>`;
+            }
+            
+            if (requirements.extraReq) {
+                html += `<div class="requirement-item ${reqCheck.needsExtraReq ? 'requirement-needed' : 'requirement-met'}">
+                    ${reqCheck.needsExtraReq ? '⚠️' : '✅'} Extra: ${requirements.extraReq.message}
+                </div>`;
+            }
+            
+            if (emptySlots > requirementsCount && requirementsCount > 0) {
+                html += '<div class="info-badge">💡 Sie haben Wahlfreiheit nach Erfüllung der Anforderungen</div>';
+            }
+            
+            if (emptySlots === requirementsCount && requirementsCount > 0) {
+                html += '<div class="info-badge" style="background: #fed7aa; color: #9a3412;">⚠️ Wahlen = Anforderungen: Muss nur aus Anforderungskursen wählen!</div>';
+            }
+            
+            document.getElementById('requirements-content').innerHTML = html;
+        }
+
+        // Clear a course
+        function clearCourse(index) {
+            selectedCourses[index] = '';
+            
+            if (index < 2) {
+                selectedCourses[2] = '';
+                selectedCourses[3] = '';
+                selectedCourses[4] = '';
+            }
+            
+            updatePhase1Dropdowns();
+            updatePhase2();
+            updateSummary();
+        }
+
+        // Update summary
+        function updateSummary() {
+            const summaryDiv = document.getElementById('summary-content');
+            const hasSelections = selectedCourses.some(c => c);
+            
+            if (!hasSelections) {
+                summaryDiv.innerHTML = '<div class="summary-empty">Noch keine Kurse ausgewählt. Beginnen Sie mit den Leistungsfächern!</div>';
+                document.getElementById('reset-all-btn').style.display = 'none';
+                return;
+            }
+            
+            const labels = [
+                'Leistungskurs 1',
+                'Leistungskurs 2',
+                'Schriftliche Prüfungsfach 3',
+                'Mündliche Prüfungsfächer 4',
+                'Referenzfach 5'
+            ];
+            
+            let html = '';
+            selectedCourses.forEach((courseId, index) => {
+                if (courseId) {
+                    const course = courseData[courseId];
+                    html += `
+                        <div class="summary-item">
+                            <span class="summary-position">${labels[index]}:</span>
+                            <span class="summary-name">${course.name}</span>
+                        </div>
+                    `;
+                }
+            });
+            
+            summaryDiv.innerHTML = html;
+            document.getElementById('reset-all-btn').style.display = 'block';
+        }
+
+        // Reset all
+        function resetAll() {
+            selectedCourses = ['', '', '', '', ''];
+            updatePhase1Dropdowns();
+            updatePhase2();
+            updateSummary();
+        }
+
+        // Initialize on page load
+        window.addEventListener('DOMContentLoaded', () => {
+            initDropdowns();
+            updatePhase1Dropdowns();
+            updatePhase2();
+            updateSummary();
+        });
+    </script>
+</body>
+</html>
